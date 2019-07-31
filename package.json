@@ -10,6 +10,8 @@
     "style-loader": "^0.23.1",
     "svelte": "^3.6.9",
     "svelte-loader": "^2.13.6",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
     "webpack": "^4.38.0",
     "webpack-cli": "^3.3.6"
   },

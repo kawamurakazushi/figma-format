@@ -8,7 +8,8 @@ const prod = mode === "production";
 module.exports = {
   entry: {
     // bundle: ["./src/main.js"]
-    ui: "./src/ui/index.js"
+    ui: "./src/ui/index.js",
+    code: "./src/code.ts"
   },
   output: {
     filename: "[name].js",
@@ -19,7 +20,7 @@ module.exports = {
     alias: {
       svelte: path.resolve("node_modules", "svelte")
     },
-    extensions: [".mjs", ".js", ".svelte"],
+    extensions: [".mjs", ".js", ".svelte", "ts"],
     mainFields: ["svelte", "browser", "module", "main"]
   },
 
@@ -34,6 +35,11 @@ module.exports = {
             hotReload: true
           }
         }
+      },
+      {
+        test: /\.ts?$/,
+        use: [{ loader: "ts-loader" }],
+        exclude: /node_modules/
       },
       {
         test: /\.css$/,
