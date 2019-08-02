@@ -76,17 +76,12 @@ if (figma.command === "format") {
     y += maxHeight + ySpacing;
   });
 
-  // // Append nodes
-  // groups.forEach(group => {
-  //   group.items.forEach(item => {
-  //     figma.currentPage.appendChild(item);
-  //   });
-  // });
-
-  // // Delete nodes
-  // children.forEach(node => {
-  //   node.remove();
-  // });
+  // Append nodes
+  groups.reverse().forEach(group => {
+    group.items.reverse().forEach(item => {
+      figma.currentPage.appendChild(item);
+    });
+  });
 }
 
 figma.closePlugin();

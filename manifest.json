@@ -1,7 +1,7 @@
 {
   "name": "Figma Format",
   "id": "732774680197470712",
-  "api": "0.6.0",
+  "api": "1.0.0",
   "main": "dist/code.js",
   "menu": [
     {

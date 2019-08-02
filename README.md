@@ -3,10 +3,13 @@
 Figma Format let's you format your canvas by grouping them by the names.
 
 ## How it works
+
 It will check the names of each layer and group them by the text before the separator (/) and layout nicely by their groups.
 
 ## Example
+
 If we have 5 frames named the following
+
 - "Article/List"
 - "Article/List"
 - "Account/My Page"
@@ -20,10 +23,11 @@ And formats using this plugin, it will be layouted like this:
 | Article/Detail | Article/List |
 
 ## Project Roadmap
+
 - [ ] Sort the Layers
 - [ ] Customization Options
   - Horizontal / Vertical
   - Spacing for x-axis and y-axis
   - Separator (default is"/")
   - Number of element in a row / column.
-  - Postion of the seprator, for grouping (default is 1)
+  - Position of the separator, for grouping (default is 1)
