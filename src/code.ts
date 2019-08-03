@@ -1,17 +1,29 @@
-// figma.showUI(__html__);
+const key = "settings";
 
 interface Group {
   category: string;
   items: BaseNode[];
 }
 
-// TODO: should be configurable
-const xSpacing = 32;
-const ySpacing = 32;
-const separator = "/";
-const wrapCount = 10;
+interface Settings {
+  separator: string;
+  xSpacing: number;
+  ySpacing: number;
+}
 
-if (figma.command === "format") {
+const defaultSettings: Settings = {
+  separator: "/",
+  xSpacing: 32,
+  ySpacing: 32
+};
+
+const format = (settings: Settings) => {
+  const { xSpacing, ySpacing, separator } = settings
+    ? settings
+    : defaultSettings;
+
+  const wrapCount = 10;
+
   const children = figma.currentPage.children;
   const nodes = children.map(node => {
     return node;
@@ -45,7 +57,7 @@ if (figma.command === "format") {
 
   // Reorder items
   groups = groups.map(group => {
-    const items = group.items.sort((a, b) => {
+    const items = group.items.reverse().sort((a, b) => {
       return a.name.localeCompare(b.name, undefined, { numeric: true });
     });
     return { ...group, items };
@@ -82,11 +94,28 @@ if (figma.command === "format") {
       figma.currentPage.appendChild(item);
     });
   });
+};
+
+if (figma.command === "configure") {
+  figma.showUI(__html__, { width: 400, height: 200 });
+  figma.clientStorage.getAsync(key).then(settings => {
+    figma.ui.postMessage({ settings });
+  });
 }
 
-figma.closePlugin();
+if (figma.command === "format") {
+  figma.clientStorage.getAsync(key).then(settings => {
+    format(settings);
+    figma.closePlugin("Successfully Formatted!");
+  });
+}
 
 figma.ui.onmessage = msg => {
+  console.log(msg.settings);
   if (msg.type === "format") {
+    figma.clientStorage.setAsync(key, msg.settings).then(() => {
+      format(msg.settings);
+      figma.closePlugin("Successfully Formatted!");
+    });
   }
 };

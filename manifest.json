@@ -3,10 +3,18 @@
   "id": "732774680197470712",
   "api": "1.0.0",
   "main": "dist/code.js",
+  "ui": "dist/ui.html",
   "menu": [
     {
       "name": "Format",
       "command": "format"
+    },
+    {
+      "separator": true
+    },
+    {
+      "name": "Configure Settings",
+      "command": "configure"
     }
   ]
 }
