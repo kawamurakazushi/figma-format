@@ -6,23 +6,48 @@ interface Group {
 }
 
 interface Settings {
+  separator?: string;
+  xSpacing?: number;
+  ySpacing?: number;
+  wrapCount?: number;
+}
+
+interface DefaultSettings {
   separator: string;
   xSpacing: number;
   ySpacing: number;
+  wrapCount: number;
 }
 
-const defaultSettings: Settings = {
+const defaultSettings: DefaultSettings = {
   separator: "/",
   xSpacing: 32,
-  ySpacing: 32
+  ySpacing: 32,
+  wrapCount: 10
 };
 
-const format = (settings: Settings) => {
-  const { xSpacing, ySpacing, separator } = settings
-    ? settings
-    : defaultSettings;
+const settingsWithDefaults = (settings: Settings | undefined) => {
+  return (name: "separator" | "xSpacing" | "ySpacing" | "wrapCount") => {
+    const d = settings ? settings : defaultSettings;
+    switch (name) {
+      case "separator":
+        return d.separator ? d.separator : defaultSettings.separator;
+      case "xSpacing":
+        return d.xSpacing ? d.xSpacing : defaultSettings.xSpacing;
+      case "ySpacing":
+        return d.ySpacing ? d.ySpacing : defaultSettings.ySpacing;
+      case "wrapCount":
+        return d.wrapCount ? d.wrapCount : defaultSettings.wrapCount;
+    }
+  };
+};
 
-  const wrapCount = 10;
+const format = (settings: Settings | undefined) => {
+  const d = settings ? settings : defaultSettings;
+  const xSpacing = d.xSpacing ? d.xSpacing : defaultSettings.xSpacing;
+  const ySpacing = d.ySpacing ? d.ySpacing : defaultSettings.ySpacing;
+  const separator = d.separator ? d.separator : defaultSettings.separator;
+  const wrapCount = d.wrapCount ? d.wrapCount : defaultSettings.wrapCount;
 
   const children = figma.currentPage.children;
   const nodes = children.map(node => {
@@ -77,7 +102,7 @@ const format = (settings: Settings) => {
         maxHeight = Math.max(maxHeight, item.height);
         x += item.width + xSpacing;
 
-        if (j !== 0 && j % wrapCount === 0) {
+        if (j !== 0 && (j + 1) % wrapCount === 0) {
           x = 0;
           y += maxHeight + ySpacing;
           maxHeight = 0;
@@ -97,7 +122,7 @@ const format = (settings: Settings) => {
 };
 
 if (figma.command === "configure") {
-  figma.showUI(__html__, { width: 400, height: 200 });
+  figma.showUI(__html__, { width: 400, height: 250 });
   figma.clientStorage.getAsync(key).then(settings => {
     figma.ui.postMessage({ settings });
   });

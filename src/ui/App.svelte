@@ -4,7 +4,9 @@
   let separator = "/";
   let xSpacing = 32;
   let ySpacing = 32;
+  let wrapCount = 10;
 
+  // Initialize Input
   onmessage = e => {
     const settings = e.data.pluginMessage.settings;
     if (settings) {
@@ -19,6 +21,10 @@
       if (settings.ySpacing) {
         ySpacing = settings.ySpacing;
       }
+
+      if (settings.wrapCount) {
+        wrapCount = settings.wrapCount;
+      }
     }
   };
 
@@ -30,7 +36,8 @@
           settings: {
             separator,
             xSpacing,
-            ySpacing
+            ySpacing,
+            wrapCount
           }
         }
       },
@@ -112,6 +119,17 @@
           bind:value={ySpacing}
           placeholder="Y" />
         <div class="type type--11-pos spacingLabel">Y</div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="label">Wrap count</div>
+
+      <div class="spacing">
+        <input
+          class="input"
+          type="number"
+          bind:value={wrapCount}
+          placeholder="Wrap Count" />
       </div>
     </div>
 
