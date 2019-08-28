@@ -5,6 +5,7 @@
   let xSpacing = 32;
   let ySpacing = 32;
   let wrapCount = 10;
+  let layoutDirection = "horizontal";
 
   // Initialize Input
   onmessage = e => {
@@ -25,6 +26,10 @@
       if (settings.wrapCount) {
         wrapCount = settings.wrapCount;
       }
+
+      if (settings.layoutDirection) {
+        layoutDirection = settings.layoutDirection;
+      }
     }
   };
 
@@ -37,7 +42,8 @@
             separator,
             xSpacing,
             ySpacing,
-            wrapCount
+            wrapCount,
+            layoutDirection
           }
         }
       },
@@ -90,12 +96,15 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     flex-direction: row-reverse;
   }
+
+  .mr {
+    margin-right: 8px;
+  }
 </style>
 
 <div class="app">
   <div class="form">
     <div class="description type--11-pos-bold">Configure your Settings</div>
-
     <div class="block">
       <div class="label">Group separator</div>
       <div class="spacing">
@@ -104,7 +113,6 @@
     </div>
     <div class="block">
       <div class="label">Spacing</div>
-
       <div class="spacing">
         <input
           class="input spacingInput"
@@ -112,7 +120,6 @@
           bind:value={xSpacing}
           placeholder="X" />
         <div class="type type--11-pos spacingLabel">X</div>
-
         <input
           class="input spacingInput"
           type="number"
@@ -123,7 +130,6 @@
     </div>
     <div class="block">
       <div class="label">Wrap count</div>
-
       <div class="spacing">
         <input
           class="input"
@@ -132,12 +138,23 @@
           placeholder="Wrap Count" />
       </div>
     </div>
-
+    <div class="block">
+      <div class="label">Layout Direction</div>
+      <div class="spacing">
+        <label class="type type--11-pos mr">
+          <input type="radio" bind:group={layoutDirection} value="horizontal" />
+          Horizontal
+        </label>
+        <label class="type type--11-pos">
+          <input type="radio" bind:group={layoutDirection} value="vertical" />
+          Vertical
+        </label>
+      </div>
+    </div>
   </div>
   <div class="footer">
     <button class="button button--primary" on:click|once={handleClick}>
       Save Settings & Format
     </button>
-
   </div>
 </div>

@@ -1,3 +1,5 @@
+import "figma-plugin-types";
+
 const key = "settings";
 
 interface Group {
@@ -10,6 +12,7 @@ interface Settings {
   xSpacing?: number;
   ySpacing?: number;
   wrapCount?: number;
+  layoutDirection?: "vertical" | "horizontal";
 }
 
 interface DefaultSettings {
@@ -17,29 +20,15 @@ interface DefaultSettings {
   xSpacing: number;
   ySpacing: number;
   wrapCount: number;
+  layoutDirection: "vertical" | "horizontal";
 }
 
 const defaultSettings: DefaultSettings = {
   separator: "/",
   xSpacing: 32,
   ySpacing: 32,
-  wrapCount: 10
-};
-
-const settingsWithDefaults = (settings: Settings | undefined) => {
-  return (name: "separator" | "xSpacing" | "ySpacing" | "wrapCount") => {
-    const d = settings ? settings : defaultSettings;
-    switch (name) {
-      case "separator":
-        return d.separator ? d.separator : defaultSettings.separator;
-      case "xSpacing":
-        return d.xSpacing ? d.xSpacing : defaultSettings.xSpacing;
-      case "ySpacing":
-        return d.ySpacing ? d.ySpacing : defaultSettings.ySpacing;
-      case "wrapCount":
-        return d.wrapCount ? d.wrapCount : defaultSettings.wrapCount;
-    }
-  };
+  wrapCount: 10,
+  layoutDirection: "horizontal"
 };
 
 const format = (settings: Settings | undefined) => {
@@ -48,77 +37,112 @@ const format = (settings: Settings | undefined) => {
   const ySpacing = d.ySpacing ? d.ySpacing : defaultSettings.ySpacing;
   const separator = d.separator ? d.separator : defaultSettings.separator;
   const wrapCount = d.wrapCount ? d.wrapCount : defaultSettings.wrapCount;
+  const layoutDirection = d.layoutDirection
+    ? d.layoutDirection
+    : defaultSettings.layoutDirection;
 
-  const children = figma.currentPage.children;
-  const nodes = children.map(node => {
-    return node;
-  });
+  figma.currentPage.children
+    .map(node => {
+      return node;
+    })
+    // Group each node
+    .reduce<Group[]>((groups, node) => {
+      const [category, _] = node.name.split(separator);
 
-  let groups: Group[] = [];
-
-  // Group each node
-  nodes.forEach(node => {
-    const [category, _] = node.name.split(separator);
-
-    if (
-      groups.filter(g => {
-        return g.category === category;
-      }).length === 0
-    ) {
-      groups.push({ category, items: [node] });
-    } else {
-      groups = groups.map(g => {
-        return g.category === category
-          ? { ...g, items: [...g.items, node] }
-          : g;
-      });
-    }
-  });
-
-  // Reorder groups
-  groups = groups.sort((a, b) => {
-    return a.category.localeCompare(b.category, undefined, { numeric: true });
-  });
-
-  // Reorder items
-  groups = groups.map(group => {
-    const items = group.items.reverse().sort((a, b) => {
-      return a.name.localeCompare(b.name, undefined, { numeric: true });
-    });
-    return { ...group, items };
-  });
-
-  // Move each Nodes
-  let y = 0;
-  groups.forEach((group, i) => {
-    let x = 0;
-    let maxHeight = 0;
-
-    group.items.forEach((item, j) => {
-      if (item.type !== "PAGE" && item.type !== "DOCUMENT") {
-        item.x = x;
-        item.y = y;
-
-        maxHeight = Math.max(maxHeight, item.height);
-        x += item.width + xSpacing;
-
-        if (j !== 0 && (j + 1) % wrapCount === 0) {
-          x = 0;
-          y += maxHeight + ySpacing;
-          maxHeight = 0;
-        }
+      if (
+        groups.filter(g => {
+          return g.category === category;
+        }).length === 0
+      ) {
+        groups.push({ category, items: [node] });
+      } else {
+        groups = groups.map(g => {
+          return g.category === category
+            ? { ...g, items: [...g.items, node] }
+            : g;
+        });
       }
-    });
 
-    y += maxHeight + ySpacing;
-  });
+      return groups;
+    }, [])
+    // Reorder groups
+    .sort((a, b) => {
+      return a.category.localeCompare(b.category, undefined, { numeric: true });
+    })
+    // Reorder items inside group
+    .map(group => {
+      const items = group.items.reverse().sort((a, b) => {
+        return a.name.localeCompare(b.name, undefined, { numeric: true });
+      });
+      return { ...group, items };
+    })
+    // Move the nodes, depending on the layout direction
+    .reduce<{ crossAxis: number; groups: Group[] }>(
+      ({ crossAxis, groups }, group) => {
+        let mainAxis = 0;
+        let maxHeight = 0;
+        let maxWidth = 0;
 
-  // Append nodes
-  groups.reverse().forEach(group => {
-    group.items.reverse().forEach(item => {
-      figma.currentPage.appendChild(item);
+        const items = group.items.map((item, j) => {
+          if (item.type !== "PAGE" && item.type !== "DOCUMENT") {
+            const newItem = item;
+
+            if (layoutDirection === "horizontal") {
+              newItem.x = mainAxis;
+              newItem.y = crossAxis;
+
+              maxHeight = Math.max(maxHeight, item.height);
+              mainAxis += item.width + xSpacing;
+
+              if (j !== 0 && (j + 1) % wrapCount === 0) {
+                mainAxis = 0;
+                crossAxis += maxHeight + ySpacing;
+                maxHeight = 0;
+              }
+
+              return newItem;
+            }
+
+            if (layoutDirection === "vertical") {
+              newItem.x = crossAxis;
+              newItem.y = mainAxis;
+
+              maxWidth = Math.max(maxWidth, item.width);
+              mainAxis += item.height + ySpacing;
+
+              if (j !== 0 && (j + 1) % wrapCount === 0) {
+                mainAxis = 0;
+                crossAxis += maxWidth + xSpacing;
+                maxWidth = 0;
+              }
+
+              return newItem;
+            }
+          }
+
+          return item;
+        });
+
+        if (layoutDirection === "horizontal") {
+          crossAxis += maxHeight + ySpacing;
+        } else if (layoutDirection === "vertical") {
+          crossAxis += maxWidth + xSpacing;
+        }
+
+        const newGroup: Group = { items, ...group };
+
+        return { crossAxis, groups: [newGroup, ...groups] };
+      },
+      { groups: [], crossAxis: 0 }
+    )
+    .groups.forEach(group => {
+      // Append every items
+      group.items.reverse().forEach(item => {
+        if (item.type !== "DOCUMENT" && item.type !== "PAGE") {
+          figma.currentPage.appendChild(item);
+        }
+      });
     });
-  });
 };
 
 if (figma.command === "configure") {
@@ -136,7 +160,6 @@ if (figma.command === "format") {
 }
 
 figma.ui.onmessage = msg => {
-  console.log(msg.settings);
   if (msg.type === "format") {
     figma.clientStorage.setAsync(key, msg.settings).then(() => {
       format(msg.settings);
