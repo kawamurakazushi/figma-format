@@ -67,12 +67,12 @@ const format = (settings: Settings | undefined) => {
     }, [])
     // Reorder groups
     .sort((a, b) => {
-      return a.category.localeCompare(b.category, undefined, { numeric: true });
+      return a.category.toLocaleLowerCase().localeCompare(b.category.toLocaleLowerCase(), undefined, { numeric: true });
     })
     // Reorder items inside group
     .map(group => {
       const items = group.items.reverse().sort((a, b) => {
-        return a.name.localeCompare(b.name, undefined, { numeric: true });
+        return a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase(), undefined, { numeric: true });
       });
       return { ...group, items };
     })
